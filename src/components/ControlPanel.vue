@@ -49,8 +49,8 @@ function handleReset() {
       </button>
       
       <button
+        v-if="isScheduleGenerated && !isRacing && !allRacesCompleted"
         class="btn btn--success"
-        :disabled="!isScheduleGenerated || isRacing || allRacesCompleted"
         @click="handleStartRace"
       >
         <span class="btn__icon">▶️</span>
