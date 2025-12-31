@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useStore } from '@/store';
 import ControlPanel from './components/ControlPanel.vue';
 import HorseList from './components/HorseList.vue';
@@ -12,7 +12,20 @@ const isScheduleGenerated = computed(() => store.getters.isScheduleGenerated);
 const isRacing = computed(() => store.getters.isRacing);
 const allResults = computed(() => store.getters.allResults);
 
-const activeTab = ref<'schedule' | 'results'>('schedule');
+const leftTab = ref<'horses' | 'track'>('horses');
+const rightTab = ref<'schedule' | 'results'>('schedule');
+
+watch(isRacing, (racing) => {
+  if (racing) {
+    leftTab.value = 'track';
+  }
+});
+
+watch(() => store.getters.isScheduleGenerated, (generated) => {
+  if (!generated) {
+    leftTab.value = 'horses';
+  }
+});
 </script>
 
 <template>
@@ -22,32 +35,48 @@ const activeTab = ref<'schedule' | 'results'>('schedule');
     </header>
     
     <main class="app__main">
-      <!-- Before Program Generated: Show Horse List Full Width -->
-      <div v-if="!isScheduleGenerated" class="app__pre-race">
-        <HorseList />
-      </div>
-      
-      <!-- After Program Generated: Show Race Layout -->
-      <div v-else class="app__layout">
-        <!-- Left: Race Track (Main Focus) -->
-        <div class="app__track-section">
-          <RaceTrack />
-        </div>
-        
-        <!-- Right: Tabbed Schedule/Results -->
-        <aside class="app__sidebar">
+      <div class="app__layout">
+        <!-- Left: Horses/Track Tabs -->
+        <div class="app__panel app__panel--main">
           <div class="app__tabs">
             <button 
               class="app__tab" 
-              :class="{ 'app__tab--active': activeTab === 'schedule' }"
-              @click="activeTab = 'schedule'"
+              :class="{ 'app__tab--active': leftTab === 'horses' }"
+              @click="leftTab = 'horses'"
+            >
+              🐴 Horses
+            </button>
+            <button 
+              class="app__tab" 
+              :class="{ 'app__tab--active': leftTab === 'track' }"
+              @click="leftTab = 'track'"
+              :disabled="!isScheduleGenerated"
+            >
+              🏁 Race Track
+              <span v-if="isRacing" class="app__tab-live">LIVE</span>
+            </button>
+          </div>
+          
+          <div class="app__tab-content">
+            <HorseList v-show="leftTab === 'horses'" />
+            <RaceTrack v-show="leftTab === 'track'" />
+          </div>
+        </div>
+        
+        <!-- Right: Schedule/Results Tabs -->
+        <aside class="app__panel app__panel--sidebar">
+          <div class="app__tabs">
+            <button 
+              class="app__tab" 
+              :class="{ 'app__tab--active': rightTab === 'schedule' }"
+              @click="rightTab = 'schedule'"
             >
               📋 Schedule
             </button>
             <button 
               class="app__tab" 
-              :class="{ 'app__tab--active': activeTab === 'results' }"
-              @click="activeTab = 'results'"
+              :class="{ 'app__tab--active': rightTab === 'results' }"
+              @click="rightTab = 'results'"
             >
               🏆 Results
               <span v-if="allResults.length" class="app__tab-badge">{{ allResults.length }}</span>
@@ -55,8 +84,8 @@ const activeTab = ref<'schedule' | 'results'>('schedule');
           </div>
           
           <div class="app__tab-content">
-            <RaceSchedule v-show="activeTab === 'schedule'" />
-            <RaceResults v-show="activeTab === 'results'" />
+            <RaceSchedule v-show="rightTab === 'schedule'" />
+            <RaceResults v-show="rightTab === 'results'" />
           </div>
         </aside>
       </div>
@@ -87,11 +116,6 @@ const activeTab = ref<'schedule' | 'results'>('schedule');
   overflow: hidden;
 }
 
-.app__pre-race {
-  height: calc(100vh - 200px);
-  min-height: 400px;
-}
-
 .app__layout {
   display: grid;
   grid-template-columns: 1fr 380px;
@@ -100,19 +124,16 @@ const activeTab = ref<'schedule' | 'results'>('schedule');
   min-height: 600px;
 }
 
-.app__track-section {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-}
-
-.app__sidebar {
+.app__panel {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: var(--section-bg, #f8f9fa);
   border-radius: 12px;
+}
+
+.app__panel--main {
+  min-height: 0;
 }
 
 .app__tabs {
@@ -140,9 +161,14 @@ const activeTab = ref<'schedule' | 'results'>('schedule');
   position: relative;
 }
 
-.app__tab:hover {
+.app__tab:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.05);
   color: var(--text-primary, #1a1a1a);
+}
+
+.app__tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .app__tab--active {
@@ -169,6 +195,21 @@ const activeTab = ref<'schedule' | 'results'>('schedule');
   padding: 2px 6px;
   border-radius: 10px;
   min-width: 18px;
+}
+
+.app__tab-live {
+  background: #e74c3c;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  animation: pulse-live 1s infinite;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .app__tab-content {
@@ -212,11 +253,11 @@ const activeTab = ref<'schedule' | 'results'>('schedule');
     min-height: auto;
   }
   
-  .app__track-section {
+  .app__panel--main {
     min-height: 500px;
   }
   
-  .app__sidebar {
+  .app__panel--sidebar {
     max-height: 400px;
   }
 }
@@ -226,11 +267,11 @@ const activeTab = ref<'schedule' | 'results'>('schedule');
     gap: 16px;
   }
   
-  .app__track-section {
+  .app__panel--main {
     min-height: 400px;
   }
   
-  .app__sidebar {
+  .app__panel--sidebar {
     max-height: 350px;
   }
   
