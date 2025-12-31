@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useStore } from '@/store';
 import type { RaceRound } from '@/types';
 import { RaceStatus } from '@/types';
+import { Play, CheckCircle, Clock, ChevronRight, ChevronDown } from 'lucide-vue-next';
 
 const store = useStore();
 const rounds = computed(() => store.getters.allRounds);
@@ -27,14 +28,14 @@ function getStatusClass(round: RaceRound): string {
   }
 }
 
-function getStatusIcon(round: RaceRound): string {
+function getStatusIcon(round: RaceRound): 'play' | 'check' | 'clock' {
   switch (round.status) {
     case RaceStatus.RUNNING:
-      return '🏃';
+      return 'play';
     case RaceStatus.FINISHED:
-      return '✅';
+      return 'check';
     default:
-      return '⏳';
+      return 'clock';
   }
 }
 
@@ -66,7 +67,9 @@ function isCurrentRound(round: RaceRound): boolean {
               class="round-row__status"
               :class="getStatusClass(round)"
             >
-              {{ getStatusIcon(round) }}
+              <Play v-if="getStatusIcon(round) === 'play'" :size="14" />
+              <CheckCircle v-else-if="getStatusIcon(round) === 'check'" :size="14" />
+              <Clock v-else :size="14" />
             </span>
             <span class="round-row__number">R{{ round.roundNumber }}</span>
             <span class="round-row__distance">{{ round.distance }}m</span>
@@ -85,7 +88,8 @@ function isCurrentRound(round: RaceRound): boolean {
               </span>
             </div>
             <span class="round-row__expand">
-              {{ expandedRound === round.roundNumber ? '▼' : '▶' }}
+              <ChevronDown v-if="expandedRound === round.roundNumber" :size="14" />
+              <ChevronRight v-else :size="14" />
             </span>
           </div>
         </div>

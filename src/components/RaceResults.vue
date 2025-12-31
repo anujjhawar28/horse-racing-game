@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useStore } from '@/store';
+import { Medal, ChevronRight, ChevronDown } from 'lucide-vue-next';
 
 const store = useStore();
 const allResults = computed(() => store.getters.allResults);
@@ -22,12 +23,12 @@ function formatTime(ms: number): string {
   return `${(ms / 1000).toFixed(2)}s`;
 }
 
-function getMedal(position: number): string {
+function getMedalType(position: number): 'gold' | 'silver' | 'bronze' | null {
   switch (position) {
-    case 1: return '🥇';
-    case 2: return '🥈';
-    case 3: return '🥉';
-    default: return '';
+    case 1: return 'gold';
+    case 2: return 'silver';
+    case 3: return 'bronze';
+    default: return null;
   }
 }
 
@@ -59,7 +60,7 @@ function getRoundDistance(roundIndex: number): number {
             <span class="result-row__distance">{{ getRoundDistance(Number(roundIndex)) }}m</span>
           </div>
           <div class="result-row__winner" v-if="results[0]">
-            <span class="result-row__medal">🥇</span>
+            <Medal :size="14" class="medal medal--gold" />
             <span 
               class="result-row__color"
               :style="{ backgroundColor: results[0].horse.color }"
@@ -67,24 +68,25 @@ function getRoundDistance(roundIndex: number): number {
             <span class="result-row__name">{{ results[0].horse.name }}</span>
           </div>
           <span class="result-row__expand">
-            {{ expandedRound === roundIndex ? '▼' : '▶' }}
+            <ChevronDown v-if="expandedRound === Number(roundIndex)" :size="14" />
+            <ChevronRight v-else :size="14" />
           </span>
         </div>
         
-        <div v-if="expandedRound === roundIndex" class="result-row__details">
+        <div v-if="expandedRound === Number(roundIndex)" class="result-row__details">
           <div class="result-row__podium">
             <div v-if="results[1]" class="podium podium--silver">
-              <span class="podium__medal">🥈</span>
+              <Medal :size="24" class="medal medal--silver" />
               <span class="podium__color" :style="{ backgroundColor: results[1].horse.color }"/>
               <span class="podium__name">{{ results[1].horse.name }}</span>
             </div>
             <div v-if="results[0]" class="podium podium--gold">
-              <span class="podium__medal">🥇</span>
+              <Medal :size="28" class="medal medal--gold" />
               <span class="podium__color" :style="{ backgroundColor: results[0].horse.color }"/>
               <span class="podium__name">{{ results[0].horse.name }}</span>
             </div>
             <div v-if="results[2]" class="podium podium--bronze">
-              <span class="podium__medal">🥉</span>
+              <Medal :size="24" class="medal medal--bronze" />
               <span class="podium__color" :style="{ backgroundColor: results[2].horse.color }"/>
               <span class="podium__name">{{ results[2].horse.name }}</span>
             </div>
@@ -98,7 +100,8 @@ function getRoundDistance(roundIndex: number): number {
               :class="{ 'table-row--top3': result.position <= 3 }"
             >
               <span class="table-row__pos">
-                {{ getMedal(result.position) }} {{ getPositionLabel(result.position) }}
+                <Medal v-if="getMedalType(result.position)" :size="14" :class="'medal medal--' + getMedalType(result.position)" />
+                {{ getPositionLabel(result.position) }}
               </span>
               <span class="table-row__horse">
                 <span class="table-row__color" :style="{ backgroundColor: result.horse.color }"/>
@@ -315,5 +318,27 @@ function getRoundDistance(roundIndex: number): number {
   font-family: monospace;
   font-size: 11px;
   color: var(--text-secondary, #666666);
+}
+
+.medal {
+  flex-shrink: 0;
+}
+
+.medal--gold {
+  color: #FFD700;
+}
+
+.medal--silver {
+  color: #C0C0C0;
+}
+
+.medal--bronze {
+  color: #CD7F32;
+}
+
+.table-row__pos {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 </style>

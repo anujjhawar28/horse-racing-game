@@ -6,6 +6,7 @@ import HorseList from './components/HorseList.vue';
 import RaceSchedule from './components/RaceSchedule.vue';
 import RaceTrack from './components/RaceTrack.vue';
 import RaceResults from './components/RaceResults.vue';
+import { Zap, Flag, ClipboardList, Trophy, CircleDot } from 'lucide-vue-next';
 
 const store = useStore();
 const isScheduleGenerated = computed(() => store.getters.isScheduleGenerated);
@@ -44,7 +45,7 @@ watch(() => store.getters.isScheduleGenerated, (generated) => {
               :class="{ 'app__tab--active': leftTab === 'horses' }"
               @click="leftTab = 'horses'"
             >
-              🐴 Horses
+              <Zap :size="16" /> Horses
             </button>
             <button 
               class="app__tab" 
@@ -52,7 +53,7 @@ watch(() => store.getters.isScheduleGenerated, (generated) => {
               @click="leftTab = 'track'"
               :disabled="!isScheduleGenerated"
             >
-              🏁 Race Track
+              <Flag :size="16" /> Race Track
               <span v-if="isRacing" class="app__tab-live">LIVE</span>
             </button>
           </div>
@@ -71,14 +72,14 @@ watch(() => store.getters.isScheduleGenerated, (generated) => {
               :class="{ 'app__tab--active': rightTab === 'schedule' }"
               @click="rightTab = 'schedule'"
             >
-              📋 Schedule
+              <ClipboardList :size="16" /> Schedule
             </button>
             <button 
               class="app__tab" 
               :class="{ 'app__tab--active': rightTab === 'results' }"
               @click="rightTab = 'results'"
             >
-              🏆 Results
+              <Trophy :size="16" /> Results
               <span v-if="allResults.length" class="app__tab-badge">{{ allResults.length }}</span>
             </button>
           </div>
@@ -92,7 +93,7 @@ watch(() => store.getters.isScheduleGenerated, (generated) => {
     </main>
     
     <footer class="app__footer">
-      <p>🏇 Horse Racing Game - Built with Vue.js & Vuex</p>
+      <p><CircleDot :size="14" class="footer-icon" /> Horse Racing Game - Built with Vue.js & Vuex</p>
     </footer>
   </div>
 </template>

@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useStore } from '@/store';
 import HorseCard from './HorseCard.vue';
+import { Zap } from 'lucide-vue-next';
 
 const store = useStore();
 const horses = computed(() => store.getters.allHorses);
@@ -10,7 +11,7 @@ const horses = computed(() => store.getters.allHorses);
 <template>
   <div class="horse-list">
     <div class="horse-list__header">
-      <h2 class="horse-list__title">🐴 Available Horses</h2>
+      <h2 class="horse-list__title"><Zap :size="20" /> Available Horses</h2>
       <span class="horse-list__count">{{ horses.length }} </span>
     </div>
     

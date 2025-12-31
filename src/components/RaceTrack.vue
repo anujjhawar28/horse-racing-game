@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useStore } from "@/store";
 import type { HorseRaceState } from "@/types";
 import { RaceStatus } from "@/types";
+import { Flag, CircleDot } from 'lucide-vue-next';
 
 const store = useStore();
 
@@ -28,7 +29,7 @@ function getPositionLabel(rank: number | null): string {
 <template>
   <div class="race-track">
     <div class="race-track__header">
-      <h2 class="race-track__title">🏁 Race Track</h2>
+      <h2 class="race-track__title"><Flag :size="20" /> Race Track</h2>
       <div v-if="currentRound" class="race-track__info">
         <span class="race-track__round">Round {{ currentRoundNumber }}</span>
         <span class="race-track__distance">{{ currentRound.distance }}m</span>
@@ -48,7 +49,7 @@ function getPositionLabel(rank: number | null): string {
     </div>
 
     <div v-if="!raceState.length" class="race-track__empty">
-      <div class="race-track__empty-icon">🏇</div>
+      <div class="race-track__empty-icon"><CircleDot :size="48" /></div>
       <p>Generate a program and start the race to see horses compete!</p>
     </div>
 

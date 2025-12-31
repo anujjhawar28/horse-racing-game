@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useStore } from '@/store';
+import { Dices, Play, Pause, RotateCcw, Trophy, CircleDot } from 'lucide-vue-next';
 
 const store = useStore();
 
@@ -35,7 +36,7 @@ function handleReset() {
   <div class="control-panel">
     <div class="control-panel__header">
       <div class="control-panel__title">
-        <h1 class="control-panel__heading">🏇 Horse Racing Game</h1>
+        <h1 class="control-panel__heading"><CircleDot :size="28" class="heading-icon" /> Horse Racing Game</h1>
         <p class="control-panel__subtitle">Generate a program and start the race!</p>
       </div>
       
@@ -45,11 +46,13 @@ function handleReset() {
       </div>
       
       <div v-else-if="isRacing && isPaused" class="status-indicator status-indicator--paused">
-        <span>⏸️ Paused - Round {{ currentRoundNumber }}</span>
+        <Pause :size="16" />
+        <span>Paused - Round {{ currentRoundNumber }}</span>
       </div>
       
       <div v-else-if="allRacesCompleted" class="status-indicator status-indicator--complete">
-        <span>🎉 All Races Completed!</span>
+        <Trophy :size="16" />
+        <span>All Races Completed!</span>
       </div>
     </div>
     
@@ -59,7 +62,7 @@ function handleReset() {
         :disabled="isRacing"
         @click="handleGenerateSchedule"
       >
-        <span class="btn__icon">🎲</span>
+        <Dices :size="18" />
         <span class="btn__text">Generate Program</span>
       </button>
       
@@ -68,7 +71,7 @@ function handleReset() {
         class="btn btn--success"
         @click="handleStartRace"
       >
-        <span class="btn__icon">▶️</span>
+        <Play :size="18" />
         <span class="btn__text">Start Race</span>
       </button>
       
@@ -77,7 +80,8 @@ function handleReset() {
         class="btn btn--warning"
         @click="handlePauseResume"
       >
-        <span class="btn__icon">{{ isPaused ? '▶️' : '⏸️' }}</span>
+        <Play v-if="isPaused" :size="18" />
+        <Pause v-else :size="18" />
         <span class="btn__text">{{ isPaused ? 'Resume' : 'Pause' }}</span>
       </button>
       
@@ -86,7 +90,7 @@ function handleReset() {
         :disabled="isRacing && !isPaused"
         @click="handleReset"
       >
-        <span class="btn__icon">🔄</span>
+        <RotateCcw :size="18" />
         <span class="btn__text">Reset</span>
       </button>
     </div>
@@ -120,6 +124,13 @@ function handleReset() {
   font-size: 28px;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.heading-icon {
+  flex-shrink: 0;
 }
 
 .control-panel__subtitle {
