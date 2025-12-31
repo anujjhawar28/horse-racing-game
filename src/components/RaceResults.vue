@@ -231,6 +231,8 @@ function getRoundDistance(roundIndex: number): number {
 .result-row__details {
   padding: 0 12px 12px;
   border-top: 1px solid var(--border-color, #e0e0e0);
+  max-height: 280px;
+  overflow-y: auto;
 }
 
 .result-row__podium {
