@@ -1,17 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useStore } from '@/store';
-import { Medal, ChevronRight, ChevronDown } from 'lucide-vue-next';
+import { BaseAccordion, BaseBadge } from './controls';
+import { Medal } from 'lucide-vue-next';
 
 const store = useStore();
 const allResults = computed(() => store.getters.allResults);
 const allRounds = computed(() => store.getters.allRounds);
-
-const expandedRound = ref<number | null>(allResults.value.length > 0 ? allResults.value.length - 1 : null);
-
-function toggleExpand(roundIndex: number) {
-  expandedRound.value = expandedRound.value === roundIndex ? null : roundIndex;
-}
 
 function getPositionLabel(position: number): string {
   const suffixes = ['th', 'st', 'nd', 'rd'];
@@ -48,32 +43,27 @@ function getRoundDistance(roundIndex: number): number {
         {{ allResults.length }} / 6 races completed
       </div>
       
-      <div
+      <BaseAccordion
         v-for="(results, roundIndex) in allResults"
         :key="roundIndex"
-        class="result-row"
-        :class="{ 'result-row--expanded': expandedRound === Number(roundIndex) }"
+        :expanded="Number(roundIndex) === allResults.length - 1"
       >
-        <div class="result-row__main" @click="toggleExpand(Number(roundIndex))">
-          <div class="result-row__left">
+        <template #header>
+          <div class="result-row__header">
             <span class="result-row__number">R{{ Number(roundIndex) + 1 }}</span>
-            <span class="result-row__distance">{{ getRoundDistance(Number(roundIndex)) }}m</span>
+            <BaseBadge size="sm">{{ getRoundDistance(Number(roundIndex)) }}m</BaseBadge>
+            <div class="result-row__winner" v-if="results[0]">
+              <Medal :size="14" class="medal medal--gold" />
+              <span 
+                class="result-row__color"
+                :style="{ backgroundColor: results[0].horse.color }"
+              />
+              <span class="result-row__name">{{ results[0].horse.name }}</span>
+            </div>
           </div>
-          <div class="result-row__winner" v-if="results[0]">
-            <Medal :size="14" class="medal medal--gold" />
-            <span 
-              class="result-row__color"
-              :style="{ backgroundColor: results[0].horse.color }"
-            />
-            <span class="result-row__name">{{ results[0].horse.name }}</span>
-          </div>
-          <span class="result-row__expand">
-            <ChevronDown v-if="expandedRound === Number(roundIndex)" :size="14" />
-            <ChevronRight v-else :size="14" />
-          </span>
-        </div>
+        </template>
         
-        <div v-if="expandedRound === Number(roundIndex)" class="result-row__details">
+        <div class="result-row__content">
           <div class="result-row__podium">
             <div v-if="results[1]" class="podium podium--silver">
               <Medal :size="24" class="medal medal--silver" />
@@ -111,7 +101,7 @@ function getRoundDistance(roundIndex: number): number {
             </div>
           </div>
         </div>
-      </div>
+      </BaseAccordion>
     </div>
   </div>
 </template>
@@ -153,35 +143,11 @@ function getRoundDistance(roundIndex: number): number {
   padding-right: 4px;
 }
 
-.result-row {
-  background: var(--section-bg, #f8f9fa);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.2s ease;
-}
-
-.result-row--expanded {
-  background: var(--card-bg, #ffffff);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.result-row__main {
+.result-row__header {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  gap: 12px;
-}
-
-.result-row__main:hover {
-  background: rgba(0, 0, 0, 0.03);
-}
-
-.result-row__left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex: 1;
 }
 
 .result-row__number {
@@ -190,24 +156,13 @@ function getRoundDistance(roundIndex: number): number {
   color: var(--text-primary, #1a1a1a);
 }
 
-.result-row__distance {
-  font-size: 12px;
-  color: var(--text-secondary, #666666);
-  background: rgba(0, 0, 0, 0.05);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
 .result-row__winner {
   flex: 1;
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
-}
-
-.result-row__medal {
-  font-size: 14px;
+  margin-left: auto;
 }
 
 .result-row__color {
@@ -226,14 +181,7 @@ function getRoundDistance(roundIndex: number): number {
   text-overflow: ellipsis;
 }
 
-.result-row__expand {
-  font-size: 10px;
-  color: var(--text-secondary, #666666);
-}
-
-.result-row__details {
-  padding: 0 12px 12px;
-  border-top: 1px solid var(--border-color, #e0e0e0);
+.result-row__content {
   max-height: 280px;
   overflow-y: auto;
 }
@@ -253,10 +201,6 @@ function getRoundDistance(roundIndex: number): number {
   gap: 4px;
 }
 
-.podium__medal {
-  font-size: 24px;
-}
-
 .podium__color {
   width: 20px;
   height: 20px;
@@ -274,7 +218,6 @@ function getRoundDistance(roundIndex: number): number {
   white-space: nowrap;
 }
 
-.podium--gold .podium__medal { font-size: 28px; }
 .podium--silver .podium__name,
 .podium--bronze .podium__name { margin-top: 4px; }
 
@@ -297,6 +240,9 @@ function getRoundDistance(roundIndex: number): number {
 .table-row__pos {
   width: 70px;
   font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .table-row__horse {
@@ -334,11 +280,5 @@ function getRoundDistance(roundIndex: number): number {
 
 .medal--bronze {
   color: #CD7F32;
-}
-
-.table-row__pos {
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 </style>

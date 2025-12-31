@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, markRaw } from 'vue';
 import { useStore } from '@/store';
 import ControlPanel from './components/ControlPanel.vue';
 import HorseList from './components/HorseList.vue';
 import RaceSchedule from './components/RaceSchedule.vue';
 import RaceTrack from './components/RaceTrack.vue';
 import RaceResults from './components/RaceResults.vue';
+import { BaseTabs } from './components/controls';
 import { Zap, Flag, ClipboardList, Trophy, CircleDot } from 'lucide-vue-next';
 
 const store = useStore();
@@ -13,8 +14,30 @@ const isScheduleGenerated = computed(() => store.getters.isScheduleGenerated);
 const isRacing = computed(() => store.getters.isRacing);
 const allResults = computed(() => store.getters.allResults);
 
-const leftTab = ref<'horses' | 'track'>('horses');
-const rightTab = ref<'schedule' | 'results'>('schedule');
+const leftTab = ref('horses');
+const rightTab = ref('schedule');
+
+const leftTabs = computed(() => [
+  { id: 'horses', label: 'Horses', icon: markRaw(Zap) },
+  { 
+    id: 'track', 
+    label: 'Race Track', 
+    icon: markRaw(Flag), 
+    disabled: !isScheduleGenerated.value,
+    badge: isRacing.value ? 'LIVE' : undefined,
+    badgeVariant: 'live' as const
+  }
+]);
+
+const rightTabs = computed(() => [
+  { id: 'schedule', label: 'Schedule', icon: markRaw(ClipboardList) },
+  { 
+    id: 'results', 
+    label: 'Results', 
+    icon: markRaw(Trophy),
+    badge: allResults.value.length || undefined
+  }
+]);
 
 watch(isRacing, (racing) => {
   if (racing) {
@@ -39,24 +62,7 @@ watch(() => store.getters.isScheduleGenerated, (generated) => {
       <div class="app__layout">
         <!-- Left: Horses/Track Tabs -->
         <div class="app__panel app__panel--main">
-          <div class="app__tabs">
-            <button 
-              class="app__tab" 
-              :class="{ 'app__tab--active': leftTab === 'horses' }"
-              @click="leftTab = 'horses'"
-            >
-              <Zap :size="16" /> Horses
-            </button>
-            <button 
-              class="app__tab" 
-              :class="{ 'app__tab--active': leftTab === 'track' }"
-              @click="leftTab = 'track'"
-              :disabled="!isScheduleGenerated"
-            >
-              <Flag :size="16" /> Race Track
-              <span v-if="isRacing" class="app__tab-live">LIVE</span>
-            </button>
-          </div>
+          <BaseTabs v-model="leftTab" :tabs="leftTabs" />
           
           <div class="app__tab-content">
             <HorseList v-show="leftTab === 'horses'" />
@@ -66,23 +72,7 @@ watch(() => store.getters.isScheduleGenerated, (generated) => {
         
         <!-- Right: Schedule/Results Tabs -->
         <aside class="app__panel app__panel--sidebar">
-          <div class="app__tabs">
-            <button 
-              class="app__tab" 
-              :class="{ 'app__tab--active': rightTab === 'schedule' }"
-              @click="rightTab = 'schedule'"
-            >
-              <ClipboardList :size="16" /> Schedule
-            </button>
-            <button 
-              class="app__tab" 
-              :class="{ 'app__tab--active': rightTab === 'results' }"
-              @click="rightTab = 'results'"
-            >
-              <Trophy :size="16" /> Results
-              <span v-if="allResults.length" class="app__tab-badge">{{ allResults.length }}</span>
-            </button>
-          </div>
+          <BaseTabs v-model="rightTab" :tabs="rightTabs" />
           
           <div class="app__tab-content">
             <RaceSchedule v-show="rightTab === 'schedule'" />
@@ -135,82 +125,6 @@ watch(() => store.getters.isScheduleGenerated, (generated) => {
 
 .app__panel--main {
   min-height: 0;
-}
-
-.app__tabs {
-  display: flex;
-  gap: 4px;
-  padding: 12px 12px 0;
-  border-bottom: 2px solid var(--border-color, #e0e0e0);
-}
-
-.app__tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 16px;
-  border: none;
-  background: transparent;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-secondary, #666666);
-  cursor: pointer;
-  border-radius: 8px 8px 0 0;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.app__tab:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--text-primary, #1a1a1a);
-}
-
-.app__tab:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.app__tab--active {
-  background: var(--card-bg, #ffffff);
-  color: var(--accent-color, #3498db);
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.app__tab--active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--card-bg, #ffffff);
-}
-
-.app__tab-badge {
-  background: var(--accent-color, #3498db);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 18px;
-}
-
-.app__tab-live {
-  background: #e74c3c;
-  color: white;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  animation: pulse-live 1s infinite;
-}
-
-@keyframes pulse-live {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
 }
 
 .app__tab-content {
