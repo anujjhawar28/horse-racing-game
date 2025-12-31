@@ -33,9 +33,24 @@ function handleReset() {
 
 <template>
   <div class="control-panel">
-    <div class="control-panel__title">
-      <h1 class="control-panel__heading">🏇 Horse Racing Game</h1>
-      <p class="control-panel__subtitle">Generate a program and start the race!</p>
+    <div class="control-panel__header">
+      <div class="control-panel__title">
+        <h1 class="control-panel__heading">🏇 Horse Racing Game</h1>
+        <p class="control-panel__subtitle">Generate a program and start the race!</p>
+      </div>
+      
+      <div v-if="isRacing && !isPaused" class="status-indicator status-indicator--racing">
+        <span class="status-indicator__dot"></span>
+        <span>Racing Round {{ currentRoundNumber }}...</span>
+      </div>
+      
+      <div v-else-if="isRacing && isPaused" class="status-indicator status-indicator--paused">
+        <span>⏸️ Paused - Round {{ currentRoundNumber }}</span>
+      </div>
+      
+      <div v-else-if="allRacesCompleted" class="status-indicator status-indicator--complete">
+        <span>🎉 All Races Completed!</span>
+      </div>
     </div>
     
     <div class="control-panel__buttons">
@@ -75,25 +90,6 @@ function handleReset() {
         <span class="btn__text">Reset</span>
       </button>
     </div>
-    
-    <div v-if="isRacing && !isPaused" class="control-panel__status">
-      <div class="status-indicator status-indicator--racing">
-        <span class="status-indicator__dot"></span>
-        <span>Racing Round {{ currentRoundNumber }}...</span>
-      </div>
-    </div>
-    
-    <div v-else-if="isRacing && isPaused" class="control-panel__status">
-      <div class="status-indicator status-indicator--paused">
-        <span>⏸️ Paused - Round {{ currentRoundNumber }}</span>
-      </div>
-    </div>
-    
-    <div v-else-if="allRacesCompleted" class="control-panel__status">
-      <div class="status-indicator status-indicator--complete">
-        <span>🎉 All Races Completed!</span>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -106,9 +102,17 @@ function handleReset() {
   box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
 }
 
-.control-panel__title {
-  text-align: center;
+.control-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 24px;
+  gap: 16px;
+}
+
+.control-panel__title {
+  text-align: left;
+  flex: 1;
 }
 
 .control-panel__heading {
@@ -187,12 +191,6 @@ function handleReset() {
 
 .btn__icon {
   font-size: 18px;
-}
-
-.control-panel__status {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
 }
 
 .status-indicator {
