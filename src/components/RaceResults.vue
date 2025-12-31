@@ -108,6 +108,7 @@ function getRoundDistance(roundIndex: number): number {
 <style scoped>
 .race-results {
   padding: 16px;
+  padding-right: 8px;
   display: flex;
   flex-direction: column;
 }

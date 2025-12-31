@@ -128,9 +128,27 @@ watch(() => store.getters.isScheduleGenerated, (generated) => {
 
 .app__tab-content {
   flex: 1;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: var(--card-bg, #ffffff);
   border-radius: 0 0 12px 12px;
+}
+
+.app__tab-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.app__tab-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app__tab-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.app__tab-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .app__tab-content > * {
@@ -138,6 +156,7 @@ watch(() => store.getters.isScheduleGenerated, (generated) => {
   min-height: 100%;
   border-radius: 0;
   background: transparent;
+  padding-right: 8px;
 }
 
 .app__footer {
