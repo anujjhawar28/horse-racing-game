@@ -102,10 +102,8 @@ function isCurrentRound(round: RaceRound): boolean {
 <style scoped>
 .race-schedule {
   padding: 16px;
-  height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .race-schedule__empty {
@@ -121,9 +119,6 @@ function isCurrentRound(round: RaceRound): boolean {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow-y: auto;
-  flex: 1;
-  padding-right: 4px;
 }
 
 .round-row--active {

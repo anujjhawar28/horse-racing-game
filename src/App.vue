@@ -128,13 +128,14 @@ watch(() => store.getters.isScheduleGenerated, (generated) => {
 
 .app__tab-content {
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
   background: var(--card-bg, #ffffff);
   border-radius: 0 0 12px 12px;
 }
 
 .app__tab-content > * {
-  height: 100%;
+  height: auto;
+  min-height: 100%;
   border-radius: 0;
   background: transparent;
 }
