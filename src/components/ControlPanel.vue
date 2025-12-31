@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, markRaw } from 'vue';
 import { useStore } from '@/store';
-import { BaseButton, BaseBadge } from './controls';
 import { Dices, Play, Pause, RotateCcw, Trophy, CircleDot } from 'lucide-vue-next';
 
 const store = useStore();

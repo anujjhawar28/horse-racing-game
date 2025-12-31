@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useStore } from '@/store';
-import { BaseAccordion, BaseBadge } from './controls';
 import { Medal } from 'lucide-vue-next';
 
 const store = useStore();

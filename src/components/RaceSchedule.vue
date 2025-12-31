@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import { useStore } from '@/store';
 import type { RaceRound } from '@/types';
 import { RaceStatus } from '@/types';
-import { BaseAccordion, BaseBadge } from './controls';
 import { Play, CheckCircle, Clock } from 'lucide-vue-next';
 
 const store = useStore();

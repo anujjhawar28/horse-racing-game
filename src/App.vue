@@ -6,7 +6,6 @@ import HorseList from './components/HorseList.vue';
 import RaceSchedule from './components/RaceSchedule.vue';
 import RaceTrack from './components/RaceTrack.vue';
 import RaceResults from './components/RaceResults.vue';
-import { BaseTabs } from './components/controls';
 import { Zap, Flag, ClipboardList, Trophy, CircleDot } from 'lucide-vue-next';
 
 const store = useStore();
