@@ -97,7 +97,7 @@ function isCurrentRound(round: RaceRound): boolean {
               :key="horse.id"
               class="round-row__horse"
             >
-              <span class="round-row__horse-lane">{{ index + 1 }}</span>
+              <span class="round-row__horse-lane">{{ Number(index) + 1 }}</span>
               <span 
                 class="round-row__horse-color"
                 :style="{ backgroundColor: horse.color }"

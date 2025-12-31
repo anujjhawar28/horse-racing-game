@@ -21,7 +21,7 @@ function getPositionLabel(rank: number | null): string {
   if (rank === null) return "";
   const suffixes = ["th", "st", "nd", "rd"];
   const v = rank % 100;
-  return rank + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+  return rank + (suffixes[(v - 20) % 10] ?? suffixes[v] ?? suffixes[0] ?? 'th');
 }
 </script>
 
@@ -59,7 +59,7 @@ function getPositionLabel(rank: number | null): string {
         class="lane"
         :class="{ 'lane--finished': horseState.finished }"
       >
-        <div class="lane__number">{{ index + 1 }}</div>
+        <div class="lane__number">{{ Number(index) + 1 }}</div>
         
         <div class="lane__content">
           <div class="lane__header">

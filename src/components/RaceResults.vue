@@ -15,7 +15,7 @@ function toggleExpand(roundIndex: number) {
 function getPositionLabel(position: number): string {
   const suffixes = ['th', 'st', 'nd', 'rd'];
   const v = position % 100;
-  return position + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+  return position + (suffixes[(v - 20) % 10] ?? suffixes[v] ?? suffixes[0] ?? 'th');
 }
 
 function formatTime(ms: number): string {
@@ -51,12 +51,12 @@ function getRoundDistance(roundIndex: number): number {
         v-for="(results, roundIndex) in allResults"
         :key="roundIndex"
         class="result-row"
-        :class="{ 'result-row--expanded': expandedRound === roundIndex }"
+        :class="{ 'result-row--expanded': expandedRound === Number(roundIndex) }"
       >
-        <div class="result-row__main" @click="toggleExpand(roundIndex)">
+        <div class="result-row__main" @click="toggleExpand(Number(roundIndex))">
           <div class="result-row__left">
-            <span class="result-row__number">R{{ roundIndex + 1 }}</span>
-            <span class="result-row__distance">{{ getRoundDistance(roundIndex) }}m</span>
+            <span class="result-row__number">R{{ Number(roundIndex) + 1 }}</span>
+            <span class="result-row__distance">{{ getRoundDistance(Number(roundIndex)) }}m</span>
           </div>
           <div class="result-row__winner" v-if="results[0]">
             <span class="result-row__medal">🥇</span>
