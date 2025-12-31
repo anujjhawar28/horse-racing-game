@@ -1,9 +1,18 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useStore } from '@/store';
 import ControlPanel from './components/ControlPanel.vue';
 import HorseList from './components/HorseList.vue';
 import RaceSchedule from './components/RaceSchedule.vue';
 import RaceTrack from './components/RaceTrack.vue';
 import RaceResults from './components/RaceResults.vue';
+
+const store = useStore();
+const isScheduleGenerated = computed(() => store.getters.isScheduleGenerated);
+const isRacing = computed(() => store.getters.isRacing);
+const allResults = computed(() => store.getters.allResults);
+
+const activeTab = ref<'schedule' | 'results'>('schedule');
 </script>
 
 <template>
@@ -13,24 +22,41 @@ import RaceResults from './components/RaceResults.vue';
     </header>
     
     <main class="app__main">
-      <div class="app__layout">
-        <!-- Left Column: Horse List -->
-        <aside class="app__sidebar app__sidebar--left">
-          <HorseList />
-        </aside>
-        
-        <!-- Center Column: Race Track (Main Focus) -->
-        <div class="app__center">
+      <!-- Before Program Generated: Show Horse List Full Width -->
+      <div v-if="!isScheduleGenerated" class="app__pre-race">
+        <HorseList />
+      </div>
+      
+      <!-- After Program Generated: Show Race Layout -->
+      <div v-else class="app__layout">
+        <!-- Left: Race Track (Main Focus) -->
+        <div class="app__track-section">
           <RaceTrack />
         </div>
         
-        <!-- Right Column: Schedule + Results -->
-        <aside class="app__sidebar app__sidebar--right">
-          <div class="app__panel">
-            <RaceSchedule />
+        <!-- Right: Tabbed Schedule/Results -->
+        <aside class="app__sidebar">
+          <div class="app__tabs">
+            <button 
+              class="app__tab" 
+              :class="{ 'app__tab--active': activeTab === 'schedule' }"
+              @click="activeTab = 'schedule'"
+            >
+              📋 Schedule
+            </button>
+            <button 
+              class="app__tab" 
+              :class="{ 'app__tab--active': activeTab === 'results' }"
+              @click="activeTab = 'results'"
+            >
+              🏆 Results
+              <span v-if="allResults.length" class="app__tab-badge">{{ allResults.length }}</span>
+            </button>
           </div>
-          <div class="app__panel">
-            <RaceResults />
+          
+          <div class="app__tab-content">
+            <RaceSchedule v-show="activeTab === 'schedule'" />
+            <RaceResults v-show="activeTab === 'results'" />
           </div>
         </aside>
       </div>
@@ -61,35 +87,101 @@ import RaceResults from './components/RaceResults.vue';
   overflow: hidden;
 }
 
+.app__pre-race {
+  height: calc(100vh - 200px);
+  min-height: 400px;
+}
+
 .app__layout {
   display: grid;
-  grid-template-columns: 260px 1fr 320px;
+  grid-template-columns: 1fr 380px;
   gap: 20px;
   height: calc(100vh - 200px);
   min-height: 600px;
+}
+
+.app__track-section {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .app__sidebar {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--section-bg, #f8f9fa);
+  border-radius: 12px;
 }
 
-.app__sidebar--right {
-  gap: 16px;
-}
-
-.app__panel {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.app__center {
+.app__tabs {
   display: flex;
-  flex-direction: column;
+  gap: 4px;
+  padding: 12px 12px 0;
+  border-bottom: 2px solid var(--border-color, #e0e0e0);
+}
+
+.app__tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary, #666666);
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.app__tab:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary, #1a1a1a);
+}
+
+.app__tab--active {
+  background: var(--card-bg, #ffffff);
+  color: var(--accent-color, #3498db);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.app__tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--card-bg, #ffffff);
+}
+
+.app__tab-badge {
+  background: var(--accent-color, #3498db);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+}
+
+.app__tab-content {
+  flex: 1;
   overflow: hidden;
-  min-height: 0;
+  background: var(--card-bg, #ffffff);
+  border-radius: 0 0 12px 12px;
+}
+
+.app__tab-content > * {
+  height: 100%;
+  border-radius: 0;
+  background: transparent;
 }
 
 .app__footer {
@@ -106,63 +198,45 @@ import RaceResults from './components/RaceResults.vue';
 }
 
 /* Responsive adjustments */
-@media (max-width: 1400px) {
+@media (max-width: 1200px) {
   .app__layout {
-    grid-template-columns: 240px 1fr 300px;
+    grid-template-columns: 1fr 340px;
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 992px) {
   .app__layout {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
     height: auto;
     min-height: auto;
   }
   
-  .app__sidebar--left {
-    grid-column: 1;
-    grid-row: 1;
-    max-height: 350px;
-  }
-  
-  .app__sidebar--right {
-    grid-column: 2;
-    grid-row: 1;
-    max-height: 350px;
-    flex-direction: row;
-  }
-  
-  .app__center {
-    grid-column: 1 / -1;
-    grid-row: 2;
+  .app__track-section {
     min-height: 500px;
+  }
+  
+  .app__sidebar {
+    max-height: 400px;
   }
 }
 
 @media (max-width: 768px) {
   .app__layout {
-    grid-template-columns: 1fr;
     gap: 16px;
   }
   
-  .app__sidebar--left {
-    grid-column: 1;
-    grid-row: 1;
-    max-height: 280px;
-  }
-  
-  .app__center {
-    grid-column: 1;
-    grid-row: 2;
+  .app__track-section {
     min-height: 400px;
   }
   
-  .app__sidebar--right {
-    grid-column: 1;
-    grid-row: 3;
-    max-height: 400px;
-    flex-direction: column;
+  .app__sidebar {
+    max-height: 350px;
+  }
+  
+  .app__tab {
+    padding: 10px 12px;
+    font-size: 13px;
   }
 }
 </style>

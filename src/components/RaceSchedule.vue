@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from '@/store';
 import type { RaceRound } from '@/types';
 import { RaceStatus } from '@/types';
@@ -9,6 +9,12 @@ const rounds = computed(() => store.getters.allRounds);
 const isScheduleGenerated = computed(() => store.getters.isScheduleGenerated);
 const currentRoundNumber = computed(() => store.getters.currentRoundNumber);
 const isRacing = computed(() => store.getters.isRacing);
+
+const expandedRound = ref<number | null>(null);
+
+function toggleExpand(roundNumber: number) {
+  expandedRound.value = expandedRound.value === roundNumber ? null : roundNumber;
+}
 
 function getStatusClass(round: RaceRound): string {
   switch (round.status) {
@@ -21,14 +27,14 @@ function getStatusClass(round: RaceRound): string {
   }
 }
 
-function getStatusText(round: RaceRound): string {
+function getStatusIcon(round: RaceRound): string {
   switch (round.status) {
     case RaceStatus.RUNNING:
-      return '🏃 Racing';
+      return '🏃';
     case RaceStatus.FINISHED:
-      return '✅ Completed';
+      return '✅';
     default:
-      return '⏳ Pending';
+      return '⏳';
   }
 }
 
@@ -39,10 +45,6 @@ function isCurrentRound(round: RaceRound): boolean {
 
 <template>
   <div class="race-schedule">
-    <div class="race-schedule__header">
-      <h2 class="race-schedule__title">📋 Race Schedule</h2>
-    </div>
-    
     <div v-if="!isScheduleGenerated" class="race-schedule__empty">
       <p>Click "Generate Program" to create a race schedule</p>
     </div>
@@ -51,43 +53,56 @@ function isCurrentRound(round: RaceRound): boolean {
       <div
         v-for="round in rounds"
         :key="round.roundNumber"
-        class="round-card"
+        class="round-row"
         :class="{ 
-          'round-card--active': isCurrentRound(round),
-          'round-card--finished': round.status === RaceStatus.FINISHED
+          'round-row--active': isCurrentRound(round),
+          'round-row--finished': round.status === RaceStatus.FINISHED,
+          'round-row--expanded': expandedRound === round.roundNumber
         }"
       >
-        <div class="round-card__header">
-          <span class="round-card__number">Round {{ round.roundNumber }}</span>
-          <span 
-            class="round-card__status"
-            :class="getStatusClass(round)"
-          >
-            {{ getStatusText(round) }}
-          </span>
-        </div>
-        
-        <div class="round-card__distance">
-          <span class="round-card__distance-icon">📏</span>
-          <span class="round-card__distance-value">{{ round.distance }}m</span>
-        </div>
-        
-        <div class="round-card__horses">
-          <div class="round-card__horses-header">
-            <span>Participants:</span>
-          </div>
-          <div class="round-card__horses-list">
-            <div
-              v-for="horse in round.horses"
-              :key="horse.id"
-              class="round-card__horse"
-              :title="horse.name"
+        <div class="round-row__main" @click="toggleExpand(round.roundNumber)">
+          <div class="round-row__left">
+            <span 
+              class="round-row__status"
+              :class="getStatusClass(round)"
             >
+              {{ getStatusIcon(round) }}
+            </span>
+            <span class="round-row__number">R{{ round.roundNumber }}</span>
+            <span class="round-row__distance">{{ round.distance }}m</span>
+          </div>
+          <div class="round-row__right">
+            <div class="round-row__horses-preview">
+              <span
+                v-for="horse in round.horses.slice(0, 5)"
+                :key="horse.id"
+                class="round-row__horse-dot"
+                :style="{ backgroundColor: horse.color }"
+                :title="horse.name"
+              />
+              <span v-if="round.horses.length > 5" class="round-row__more">
+                +{{ round.horses.length - 5 }}
+              </span>
+            </div>
+            <span class="round-row__expand">
+              {{ expandedRound === round.roundNumber ? '▼' : '▶' }}
+            </span>
+          </div>
+        </div>
+        
+        <div v-if="expandedRound === round.roundNumber" class="round-row__details">
+          <div class="round-row__horses-grid">
+            <div
+              v-for="(horse, index) in round.horses"
+              :key="horse.id"
+              class="round-row__horse"
+            >
+              <span class="round-row__horse-lane">{{ index + 1 }}</span>
               <span 
-                class="round-card__horse-color"
+                class="round-row__horse-color"
                 :style="{ backgroundColor: horse.color }"
               />
-              <span class="round-card__horse-name">{{ horse.name }}</span>
+              <span class="round-row__horse-name">{{ horse.name }}</span>
             </div>
           </div>
         </div>
@@ -98,26 +113,11 @@ function isCurrentRound(round: RaceRound): boolean {
 
 <style scoped>
 .race-schedule {
-  background: var(--section-bg, #f8f9fa);
-  border-radius: 12px;
-  padding: 20px;
+  padding: 16px;
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-.race-schedule__header {
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--border-color, #e0e0e0);
-}
-
-.race-schedule__title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary, #1a1a1a);
 }
 
 .race-schedule__empty {
@@ -132,134 +132,157 @@ function isCurrentRound(round: RaceRound): boolean {
 .race-schedule__rounds {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   overflow-y: auto;
   flex: 1;
-  padding-right: 8px;
+  padding-right: 4px;
 }
 
-.round-card {
-  background: var(--card-bg, #ffffff);
+.round-row {
+  background: var(--section-bg, #f8f9fa);
   border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  border-left: 4px solid transparent;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
 }
 
-.round-card--active {
-  border-left-color: var(--accent-color, #3498db);
-  background: var(--card-active-bg, #e8f4fc);
-  animation: pulse 1.5s infinite;
+.round-row--active {
+  border-left-color: var(--success-color, #27ae60);
+  background: rgba(39, 174, 96, 0.1);
 }
 
-.round-card--finished {
-  border-left-color: var(--success-color, #2ecc71);
-  opacity: 0.9;
+.round-row--finished {
+  opacity: 0.7;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  50% {
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-  }
+.round-row--expanded {
+  background: var(--card-bg, #ffffff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.round-card__header {
+.round-row__main {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.round-card__number {
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--text-primary, #1a1a1a);
+.round-row__main:hover {
+  background: rgba(0, 0, 0, 0.03);
 }
 
-.round-card__status {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-weight: 500;
-}
-
-.status--pending {
-  background: var(--status-pending-bg, #f0f0f0);
-  color: var(--status-pending-text, #666666);
-}
-
-.status--running {
-  background: var(--status-running-bg, #fff3cd);
-  color: var(--status-running-text, #856404);
-  animation: blink 1s infinite;
-}
-
-.status--finished {
-  background: var(--status-finished-bg, #d4edda);
-  color: var(--status-finished-text, #155724);
-}
-
-@keyframes blink {
-  50% {
-    opacity: 0.7;
-  }
-}
-
-.round-card__distance {
+.round-row__left {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.round-row__status {
   font-size: 14px;
-  color: var(--text-secondary, #666666);
 }
 
-.round-card__distance-icon {
-  font-size: 16px;
-}
-
-.round-card__distance-value {
-  font-weight: 600;
+.round-row__number {
+  font-weight: 700;
+  font-size: 14px;
   color: var(--text-primary, #1a1a1a);
+  min-width: 28px;
 }
 
-.round-card__horses-header {
-  font-size: 12px;
+.round-row__distance {
+  font-size: 13px;
   color: var(--text-secondary, #666666);
-  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
-.round-card__horses-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.round-card__horse {
+.round-row__right {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: var(--horse-chip-bg, #f0f0f0);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
+  gap: 12px;
 }
 
-.round-card__horse-color {
+.round-row__horses-preview {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.round-row__horse-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.round-card__horse-name {
+.round-row__more {
+  font-size: 11px;
+  color: var(--text-secondary, #666666);
+  margin-left: 2px;
+}
+
+.round-row__expand {
+  font-size: 10px;
+  color: var(--text-secondary, #666666);
+  transition: transform 0.2s ease;
+}
+
+.round-row__details {
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--border-color, #e0e0e0);
+  margin-top: 4px;
+}
+
+.round-row__horses-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  padding-top: 10px;
+}
+
+.round-row__horse {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+}
+
+.round-row__horse-lane {
+  font-size: 10px;
+  color: var(--text-secondary, #666666);
+  min-width: 14px;
+}
+
+.round-row__horse-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.round-row__horse-name {
+  color: var(--text-primary, #1a1a1a);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100px;
+}
+
+.status--running {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.status--finished {
+  opacity: 0.6;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 </style>
